@@ -69,7 +69,7 @@ end
 
 kepler_to_rv(kep::KeplerElem, mu::Number) = kepler_to_rv(kep.a, kep.e, kep.i, kep.Ω, kep.ω, kep.f, mu);
 
-kepler_to_rv(v::Vector{<:Number}, mu::Number) = kepler_to_rv(kep[1], kep[2], kep[3], kep[4], kep[5], kep[6], mu);
+kepler_to_rv(v::Vector{<:Number}, mu::Number) = kepler_to_rv(v[1], v[2], v[3], v[4], v[5], v[6], mu);
 
 """
     plot_orbit(orbit::Orbit, line_props)

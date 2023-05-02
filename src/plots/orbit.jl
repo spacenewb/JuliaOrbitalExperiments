@@ -41,10 +41,10 @@ function plot_orbit!(orbit::Orbit, line_props, plt_handle=nothing)
 
     u0 = orbit.state.vec;
 
-    T = 2*pi*sqrt(Float64(orbit.kepler.a)^3/orbit.body.μ);
+    T = 2*pi*sqrt(Float64(orbit.kepler.a)^3/μ);
     tspan = (0.0, T);
 
-    prob = ODEProblem(ode_2bp!, u0, tspan, orbit.body.μ);
+    prob = ODEProblem(ode_2bp!, u0, tspan, μ);
 
     sol = solve(prob, AutoTsit5(Rosenbrock23()), reltol = 1e-12, abstol = 1e-14);
 
@@ -199,16 +199,35 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 
 - **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
 """
-# function plot_node(node::Node, marker)
-#     plot([0.0], [0.0], [0.0],
-#         title = "Node Plot",
-#         lab = Node.name,
-#         legend = true,
-#         marker = (body.radius*scale/100, transparency, body.color,
-#         stroke(1, :white)),
-#         line = (0.0, :solid, :transparent),
-#         bg = :black,
-#         fg = :white,
-#         leg = false,
-#     );
-# end
+function plot_nodes(orbit::Orbit, marker, node_flag="all")
+    nodes = orbit.nodes
+
+    if nodes isa Node
+        req_nodes = nodes
+    elseif nodes isa Vector{Node}
+        node_list = []
+        node_names_list = []
+        for nd in nodes
+            node_list = [node_list; nd]
+            node_names_list = [node_names_list; nd.name]
+        end
+
+        if node_flag != "all"
+            req_nodes = nodes[findall(node_names_list .== node_flag)]
+        else
+            req_nodes = node_list
+        end
+    end
+
+    plot([0.0], [0.0], [0.0],
+        title = "Node Plot",
+        lab = Node.name,
+        legend = true,
+        marker = (body.radius*scale/100, transparency, body.color,
+        stroke(1, :white)),
+        line = (0.0, :solid, :transparent),
+        bg = :black,
+        fg = :white,
+        leg = false,
+    );
+end

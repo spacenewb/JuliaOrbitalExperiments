@@ -37,5 +37,15 @@ o33 = add_node(o22, n3)
 o44 = rm_node(o33, n1)
 # println(o44)
 
-plotOrbits([o33, o2, o3])
+# plotOrbits([o33, o2, o3])
 # plotOrbits(o3)
+
+orbi = o33;
+
+# node_posns = []
+# for nd in orbi.nodes
+#     new_kep_vec = [orbi.kepler.vec[1:5]; nd.θ];
+#     append!(node_posns, [kepler_to_rv(new_kep_vec, orbi.body.μ).pos]);
+# end
+
+# println(gg)
