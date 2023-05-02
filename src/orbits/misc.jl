@@ -17,7 +17,7 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-export add_node, rm_node
+export add_node!, rm_node!
 
 ################################################################################
 #                                  Functions
@@ -36,54 +36,40 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 
 - **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
 """
-function add_node(orb::Orbit, node::Node)
-	Obt =  Orbit(
-        orb.name,
-        orb.kepler,
-        orb.body,
-        [orb.nodes; node]
-    )
-    return Orbit(Obt)
-end
+############### CHECK DUPLICATES BEFORE ADDING ###############
+function add_node!(orb::Orbit, node::Node)
 
-"""
-    plot_orbit(orbit::Orbit, line_props)
-
-Plot the orbit.
-
-# Remarks
-
-The algorithm was obtained from \\[1] (accessed on 2022-07-20).
-
-# References
-
-- **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
-"""
-function rm_node(orb::Orbit, node::Node)
-    nodeslist = orb.nodes
-
-    namelist = []
-    for nd in nodeslist
-        namelist = [namelist; nd.name]
+    duplicate_node = []
+    duplicate = false
+    for no in orb.nodes
+        if (node == no)
+            duplicate_node = node
+            duplicate = true
+        end
     end
 
-    matchidx = findfirst(item -> item == node.name, namelist)
-
-    if matchidx === nothing
-        println("Node <$(node.name)> not found in Orbit <$(orb.name)>")
-        return nothing
+    if !duplicate
+        ndpos = [kepler_to_rv([orb.kepler.vec[1:5]; node.θ], orb.body.μ).pos]
+        return Orbit(
+            orb.name,
+            orb.kepler,
+            orb.body,
+            push!(orb.nodes, node),
+            append!(orb.nodepos, ndpos),
+        )
     else
-        deleteat!(nodeslist, matchidx)
+        @warn ("Found duplicate Node <$(duplicate_node)> pre-existing in Orbit <$(orb.name)>. \n
+            Ignoring and proceeding...");
+        return nothing
     end
+end
 
-	Obt = Orbit(
-        orb.name,
-        orb.kepler,
-        orb.body,
-        nodeslist
-    )
-
-    return Orbit(Obt)
+function add_node!(orb::Orbit, node::Vector{Node})
+    unique!(node)
+    for nd in node
+        add_node!(orb, nd)
+    end
+    return orb
 end
 
 """
@@ -99,11 +85,43 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 
 - **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
 """
-function Orbit(orbit::Orbit)
-    node_posns = []
-    for nd in orbit.nodes
-        new_kep_vec = [orbit.kepler.vec[1:5]; nd.θ];
-        append!(node_posns, [kepler_to_rv(new_kep_vec, orbit.body.μ).pos]);
+function rm_node!(orb::Orbit, node::Node)
+    if !isempty(orb.nodes)
+        nodeslist = orb.nodes
+        nodeposlist = orb.nodepos
+
+        namelist = []
+        for nd in nodeslist
+            namelist = [namelist; nd.name]
+        end
+
+        matchidx = findall(item -> item == node.name, namelist)
+
+        if matchidx === nothing
+            @warn ("Node <$(node.name)> not found in Orbit <$(orb.name)>")
+            return nothing
+        else
+            deleteat!(nodeslist, matchidx)
+            deleteat!(nodeposlist, matchidx)
+        end
+
+        return Orbit(
+            orb.name,
+            orb.kepler,
+            orb.body,
+            nodeslist,
+            nodeposlist
+        )
+    else
+        @warn ("No Nodes found in Orbit <$(orb.name)> to remove")
+        return nothing
     end
-    return Orbit(orbit.name, orbit.kepler, orbit.body, orbit.nodes, node_posns)
+end
+
+function rm_node!(orb::Orbit, node::Vector{Node})
+    unique!(node)
+    for nd in node
+        rm_node!(orb, nd)
+    end
+    return orb
 end

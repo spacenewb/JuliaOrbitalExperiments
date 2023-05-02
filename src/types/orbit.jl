@@ -142,13 +142,13 @@ struct Orbit
 	state::StateVec
 	body::Body
 	nodes::Vector{Node}
-    nodepos::Vector{Any}
+    nodepos::Vector{Vector{Any}}
 
-	Orbit(name::String, kep::KeplerElem, body::Body) = new(name, kep, kepler_to_rv(kep, body.μ), body, Node[], [[]]);
+	Orbit(name::String, kep::KeplerElem, body::Body) = new(name, kep, kepler_to_rv(kep, body.μ), body, Node[], []);
 
-	Orbit(name::String, state::StateVec, body::Body) = new(name, rv_to_kepler(state, body.μ), state, body, Node[], [[]]);
+	Orbit(name::String, state::StateVec, body::Body) = new(name, rv_to_kepler(state, body.μ), state, body, Node[], []);
 
-	Orbit(name::String, kep::KeplerElem, body::Body, nodes::Vector) = new(name, kep, kepler_to_rv(kep, body.μ), body, nodes, [[]]);
+	Orbit(name::String, kep::KeplerElem, body::Body, nodes::Vector) = new(name, kep, kepler_to_rv(kep, body.μ), body, nodes, []);
 
-    Orbit(name::String, kep::KeplerElem, body::Body, nodes::Vector, nodepos::Vector{Any}) = new(name, kep, kepler_to_rv(kep, body.μ), body, nodes, nodepos);
+    Orbit(name::String, kep::KeplerElem, body::Body, nodes::Vector, nodepos::Vector{Vector{Any}}) = new(name, kep, kepler_to_rv(kep, body.μ), body, nodes, nodepos);
 end

@@ -19,34 +19,27 @@ kep2 = KeplerElem(a, e, i*1.2, Ω, ω, f)
 sv = StateVec(r_ijk, v_ijk)
 
 o1 = Orbit("Alfa", kep, JOrbit.Earth)
-o11 = Orbit("Alfa2", sv, JOrbit.Earth)
+o1sv = Orbit("Alfa2", sv, JOrbit.Earth)
 o2 = Orbit("Beta", kep2, JOrbit.Earth)
-o3 = Orbit("Beta", kep2, JOrbit.Mars)
+o3 = Orbit("Gamma", kep2, JOrbit.Mars)
 
 n1 = Node("n1", 1.35)
 n2 = Node("n2", 0.3)
 n3 = Node("n3", 0.65)
+n4 = Node("n4", 2.4)
+n5 = n4
 
-#
-o22 = o1
+###### add and remove nodes test
+add_node!(o1, n1)
+add_node!(o1, [n1, n1])
+rm_node!(o1, n1)
+add_node!(o1, [n1, n1, n2])
+rm_node!(o1, [n1, n2, n2])
+rm_node!(o1, n1)
 
-o11 = add_node(o1, n1)
-o22 = add_node(o11, n2)
-o33 = add_node(o22, n3)
-# println(o33)
-o44 = rm_node(o33, n1)
-# println(o44)
-
-# plotOrbits([o33, o2, o3])
-# plotOrbits(o3)
-plotOrbits(o33)
-
-# orbi = o33;
-
-# node_posns = []
-# for nd in orbi.nodes
-#     new_kep_vec = [orbi.kepler.vec[1:5]; nd.θ];
-#     append!(node_posns, [kepler_to_rv(new_kep_vec, orbi.body.μ).pos]);
-# end
-
-# println(gg)
+##### Plot test
+# plotOrbits([o1, o2, o3], n1)
+# plotOrbits(o1, n4)
+# plotOrbits(o1, n2)
+# plotOrbits(o1, [n2, n3])
+# plotOrbits([o1, o2, o3], [n2, n3])
