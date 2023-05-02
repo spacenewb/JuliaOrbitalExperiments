@@ -39,8 +39,9 @@ o44 = rm_node(o33, n1)
 
 # plotOrbits([o33, o2, o3])
 # plotOrbits(o3)
+plotOrbits(o33)
 
-orbi = o33;
+# orbi = o33;
 
 # node_posns = []
 # for nd in orbi.nodes

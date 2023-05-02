@@ -36,7 +36,11 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 
 - **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
 """
-function plot_orbit!(orbit::Orbit, line_props, plt_handle=nothing)
+function plot_orbit!(
+    orbit::Orbit,
+    line_props,
+    fig_handle=nothing,
+)
     μ = orbit.body.μ;
 
     u0 = orbit.state.vec;
@@ -48,24 +52,26 @@ function plot_orbit!(orbit::Orbit, line_props, plt_handle=nothing)
 
     sol = solve(prob, AutoTsit5(Rosenbrock23()), reltol = 1e-12, abstol = 1e-14);
 
-    if plt_handle === nothing
+    if fig_handle === nothing
         plot!(
-        sol,
-        idxs = (1, 2, 3),
-        lab = orbit.name,
-        legend = true,
-        line = line_props,
-    )
-    else
-        plot!(
-            plt_handle,
             sol,
             idxs = (1, 2, 3),
             lab = orbit.name,
             legend = true,
             line = line_props,
-        )
+        );
+    else
+        plot!(
+            fig_handle,
+            sol,
+            idxs = (1, 2, 3),
+            lab = orbit.name,
+            legend = true,
+            line = line_props,
+        );
     end
+    println("orbit plotted!")
+    return nothing
 end
 
 """
@@ -86,27 +92,94 @@ function plot_body!(
     pos::Vector{<:Number}=[0.0, 0.0, 0.0],
     scale::Number=1.0,
     transparency::Number=0.8,
-    plt_handle=nothing,
+    fig_handle=nothing,
 )
 
-    if plt_handle === nothing
+    if fig_handle === nothing
         plot!(
             [pos[1]], [pos[2]], [pos[3]],
             lab = body.name,
             marker = (body.radius*scale/100, transparency, body.color,
             stroke(1, :white)),
             line = (0.0, :solid, :transparent),
-        )
+        );
     else
         plot!(
-            plt_handle,
+            fig_handle,
             [pos[1]], [pos[2]], [pos[3]],
             lab = body.name,
             marker = (body.radius*scale/100, transparency, body.color,
             stroke(1, :white)),
             line = (0.0, :solid, :transparent),
-        )
+        );
     end
+    println("body plotted!")
+    return nothing
+end
+
+"""
+    plot_node(node::Node, marker)
+
+Plot the node.
+
+# Remarks
+
+`marker` is a tuple of (markersize, markeralpha, markercolor, markeroutline),
+    eg. marker = (100, 0.5, :red, stroke(1, :white))
+
+The algorithm was obtained from \\[1] (accessed on 2022-07-20).
+
+# References
+
+- **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
+"""
+function plot_nodes!(orbit::Orbit, fig_handle=nothing)
+    println("started plot_nodes!")
+    x = []
+    y = []
+    z = []
+    node_names = []
+    for nd in orbit.nodes
+        node_names = [node_names; nd.name]
+    end
+    for ndpos in orbit.nodepos
+        x = [x; ndpos[1]]
+        y = [y; ndpos[2]]
+        z = [x; ndpos[3]]
+    end
+
+    println("------------------")
+    println(x)
+    println(y)
+    println(z)
+    println("------------------")
+
+    if fig_handle === nothing
+        plot!(
+            x,
+            y,
+            z,
+            seriestype=:scatter,
+            lab = node_names,
+            legend = true,
+            marker = (100, 1, :red, stroke(20, :white)),
+            line = (0.0, :solid, :transparent),
+        );
+    else
+        plot!(
+            fig_handle,
+            x,
+            y,
+            z,
+            seriestype=:scatter,
+            lab = node_names,
+            legend = true,
+            marker = (10, 1, :red, stroke(2, :white)),
+            line = (0.0, :solid, :transparent),
+        );
+    end
+    println("node plotted!")
+    return nothing
 end
 
 """
@@ -160,10 +233,16 @@ function plotOrbits(
             zl_p = []
             zl_m = []
             for orbit in orbits_in_this_body
-                rand_clr = rand(3)
-                clr = parse(Colorant, RGB(rand_clr[1], rand_clr[2], rand_clr[3]))
-                lp = (line_props[1], line_props[2], clr)
+                lp = (
+                    line_props[1],
+                    line_props[2],
+                    parse(Colorant, RGB(rand(1), rand(1), rand(1)))
+                )
+
                 plot_orbit!(orbit, lp, fig)
+                println("Ki")
+                plot_nodes!(orbit, fig)
+
                 xl_p = [xl_p; xlims()[2]]
                 xl_m = [xl_m; xlims()[1]]
                 yl_p = [yl_p; ylims()[2]]
@@ -171,9 +250,6 @@ function plotOrbits(
                 zl_p = [zl_p; zlims()[2]]
                 zl_m = [zl_m; zlims()[1]]
             end
-            # println(xl_p)
-            # println(xl_m)
-
             xlims!(minimum(xl_m), maximum(xl_p))
             ylims!(minimum(yl_m), maximum(yl_p))
             zlims!(minimum(zl_m), maximum(zl_p))
@@ -181,53 +257,5 @@ function plotOrbits(
             display(fig)
         end
     end
-end
-
-"""
-    plot_node(node::Node, marker)
-
-Plot the node.
-
-# Remarks
-
-`marker` is a tuple of (markersize, markeralpha, markercolor, markeroutline),
-    eg. marker = (100, 0.5, :red, stroke(1, :white))
-
-The algorithm was obtained from \\[1] (accessed on 2022-07-20).
-
-# References
-
-- **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
-"""
-function plot_nodes(orbit::Orbit, marker, node_flag="all")
-    nodes = orbit.nodes
-
-    if nodes isa Node
-        req_nodes = nodes
-    elseif nodes isa Vector{Node}
-        node_list = []
-        node_names_list = []
-        for nd in nodes
-            node_list = [node_list; nd]
-            node_names_list = [node_names_list; nd.name]
-        end
-
-        if node_flag != "all"
-            req_nodes = nodes[findall(node_names_list .== node_flag)]
-        else
-            req_nodes = node_list
-        end
-    end
-
-    plot([0.0], [0.0], [0.0],
-        title = "Node Plot",
-        lab = Node.name,
-        legend = true,
-        marker = (body.radius*scale/100, transparency, body.color,
-        stroke(1, :white)),
-        line = (0.0, :solid, :transparent),
-        bg = :black,
-        fg = :white,
-        leg = false,
-    );
+    return nothing
 end
