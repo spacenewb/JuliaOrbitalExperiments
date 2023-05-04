@@ -7,6 +7,7 @@ using LinearAlgebra
 # using PlotThemes
 # gr()
 using GLMakie
+GLMakie.activate!()
 using GeometryBasics
 
 ################################################################################

@@ -55,3 +55,17 @@ verts_rock = [
     (-0.04, 0.6),
     (-0.015, 0.65),
 ]
+
+using Plots
+
+plot(
+    0.1:0.2:0.9,
+    0.7 * rand(5) .+ 0.15,
+    line = (3, :dash, :lightblue),
+    marker = (Plots.Shape(verts_rock), 60, RGBA(0, 0, 0, 1)),
+    bg = :pink,
+    fg = :darkblue,
+    xlim = (0, 1),
+    ylim = (0, 1),
+    leg = false,
+)

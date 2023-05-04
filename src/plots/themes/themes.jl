@@ -3,9 +3,10 @@
 # Description
 # ==============================================================================
 #
-#   Plotting functions of JOrbit.jl.
+#   Plot Themes for JOrbit.jl.
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-include("./orbit.jl")
-include("./themes/themes.jl")
+# import GLMakie.Theme
+
+include("./cosmos.jl")

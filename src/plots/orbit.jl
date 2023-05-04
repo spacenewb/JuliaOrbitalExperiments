@@ -55,12 +55,21 @@ function plot_orbit!(
     y = getindex.(sol.u,2)
     z = getindex.(sol.u,3)
 
-    lines!(
+    pt = lines!(
         ax,
         [x; x[end]],
         [y; y[end]],
         [z; z[end]],
         label = orbit.name,
+    )
+
+    text!(
+        x[1], y[1], z[1],
+        text = "O: $(orbit.name)",
+        overdraw = true,
+        color = (pt.color, 1.0),
+        font = :bold,
+        offset = (5, 0),
     )
 
     return nothing
@@ -100,14 +109,18 @@ function plot_body!(
         pos[2],
         pos[3],
         label = body.name,
+        marker = :circle,
+        color = body.color,
+        visible = false,
     )
 
-    sph = make_sphere(9, body.radius, pos)
+    sph = make_sphere(18, body.radius, pos)
     surface!(
         ax,
         sph.x,
         sph.y,
         sph.z,
+        color=fill(body.color, 100, 100),
     )
 
     return nothing
@@ -174,12 +187,22 @@ function plot_nodes!(
             y = [ndpos[2]]
             z = [ndpos[3]]
 
-            scatter!(
+            pt = scatter!(
                 ax,
                 x,
                 y,
                 z,
                 label = node_name,
+                marker = :circle, #:xcross,
+            )
+
+            text!(
+                x, y, z,
+                text = "N: $node_name",
+                overdraw = true,
+                color = (pt.color, 0.5),
+                font = :bold,
+                offset = (5, 0),
             )
         end
         i += 1
@@ -232,25 +255,21 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 function plotOrbits(
     orbits::Union{Orbit, Vector{Orbit}},
     nodes::Union{Node, Vector{Node}, String}="all",
+    theme_fcn::Function=cosmos_theme,
 )
 
     if (orbits isa Orbit)
+        set_theme!(theme_fcn())
         fig = Figure();
-        ax = Axis3(
-            fig[1, 1],
-            aspect = (1.0,1.0,1.0),
-            title = join(["Body: "; orbits.body.name; " | Orbit: "; orbits.name]),
-            xlabel = "The x label",
-            ylabel = "The y label",
-            zlabel = "The z label",
-            viewmode = :fit,
-        );
+        ax = Axis3(fig[1, 1]);
         plot_body!(orbits.body, (0.0,0.0,0.0), ax)
         plot_orbit!(orbits, ax)
         plot_nodes!(orbits, nodes, ax)
-        axislegend(position = :ct, orientation = :horizontal)
+        ax.title = join(["Body: "; orbits.body.name; " | Orbits: "; orbits.name])
+        axislegend(ax, position = :ct)
         display(GLMakie.Screen(), fig)
         make_equal_limits(ax, true)
+        set_theme!()
     elseif (orbits isa Vector{Orbit})
         orb_body_list = []
         orb_body_name_list = []
@@ -263,32 +282,25 @@ function plotOrbits(
 
         i = 1
         for curr_body in uniquebodylist
+            set_theme!(theme_fcn())
             fig = Figure();
-            ax = Axis3(
-                fig[1, 1],
-                aspect = (1.0,1.0,1.0),
-                xlabel = "The x label",
-                ylabel = "The y label",
-                zlabel = "The z label",
-                viewmode = :fit,
-            );
-
+            ax = Axis3(fig[1, 1]);
             plot_body!(curr_body, (0.0,0.0,0.0), ax)
 
             orbits_in_this_body = orbits[findall(orb_body_name_list .== curr_body.name)]
-
             orb_names = []
             for orbit in orbits_in_this_body
                 orb_names = [orb_names; orbit.name]
                 plot_orbit!(orbit, ax)
                 plot_nodes!(orbit, nodes, ax)
             end
-            orb_names = join( orb_names, ", ")
-            ax.title = join(["Body: "; curr_body.name; " | Orbits: "; orb_names])
 
-            axislegend(position = :ct, orientation = :horizontal)
+            ax.title = join(["Body: "; curr_body.name; " | Orbits: "; join( orb_names, ", ")])
+            axislegend(ax, position = :ct)
             display(GLMakie.Screen(), fig)
             make_equal_limits(ax, true)
+            set_theme!()
+
             i+=1
         end
     end
