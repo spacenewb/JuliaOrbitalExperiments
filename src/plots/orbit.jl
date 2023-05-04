@@ -38,28 +38,31 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 """
 function plot_orbit!(
     orbit::Orbit,
-    line_props,
-    fig_handle=nothing,
+    ax::Union{Axis3, Axis}=current_axis(),
 )
-    μ = orbit.body.μ;
+    μ = orbit.body.μ
 
-    u0 = orbit.state.vec;
+    u0 = orbit.state.vec
 
-    T = 2*pi*sqrt(Float64(orbit.kepler.a)^3/μ);
-    tspan = (0.0, T);
+    T = 2*pi*sqrt(Float64(orbit.kepler.a)^3/μ)
+    tspan = (0.0, T)
 
-    prob = ODEProblem(ode_2bp!, u0, tspan, μ);
+    prob = ODEProblem(ode_2bp!, u0, tspan, μ)
 
-    sol = solve(prob, AutoTsit5(Rosenbrock23()), reltol = 1e-12, abstol = 1e-14);
+    sol = solve(prob, AutoTsit5(Rosenbrock23()), reltol = 1e-12, abstol = 1e-14)
 
-    plot!(
-        fig_handle,
-        sol,
-        idxs = (1, 2, 3),
-        lab = orbit.name,
-        legend = true,
-        line = line_props,
-    );
+    x = getindex.(sol.u,1)
+    y = getindex.(sol.u,2)
+    z = getindex.(sol.u,3)
+
+    lines!(
+        ax,
+        [x; x[end]],
+        [y; y[end]],
+        [z; z[end]],
+        label = orbit.name,
+    )
+
     return nothing
 end
 
@@ -76,24 +79,37 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 
 - **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
 """
+function make_sphere(n::Integer, r::Number, offset::Tuple)
+    r = abs(r)
+    θ = [0;(0.5:n-0.5)/n;1]
+    φ = [(0:2n-2)*2/(2n-1);2]
+    x = [r*cospi(φ)*sinpi(θ) for θ in θ, φ in φ] .+ offset[1]
+    y = [r*sinpi(φ)*sinpi(θ) for θ in θ, φ in φ] .+ offset[2]
+    z = [r*cospi(θ) for θ in θ, φ in φ] .+ offset[3]
+    return (x=x, y=y, z=z)
+end
 function plot_body!(
     body::Body,
-    pos::Vector{<:Number}=[0.0, 0.0, 0.0],
-    scale::Number=1.0,
-    transparency::Number=0.8,
-    fig_handle=nothing,
+    pos::Tuple=(0.0, 0.0, 0.0),
+    ax::Union{Axis3, Axis}=current_axis(),
 )
 
-    plot!(
-        fig_handle,
-        [pos[1]],
-        [pos[2]],
-        [pos[3]],
-        lab = body.name,
-        marker = (body.radius*scale/100, transparency, body.color,
-        stroke(1, :white)),
-        line = (0.0, :solid, :transparent),
-    );
+    scatter!(
+        ax,
+        pos[1],
+        pos[2],
+        pos[3],
+        label = body.name,
+    )
+
+    sph = make_sphere(9, body.radius, pos)
+    surface!(
+        ax,
+        sph.x,
+        sph.y,
+        sph.z,
+    )
+
     return nothing
 end
 
@@ -113,7 +129,11 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 
 - **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
 """
-function plot_nodes!(orbit::Orbit, fig_handle=nothing, node_flag="all")
+function plot_nodes!(
+    orbit::Orbit,
+    node_flag="all",
+    ax::Union{Axis3, Axis}=current_axis(),
+)
 
     all_nodes_names_list = []
     for nd in orbit.nodes
@@ -154,20 +174,13 @@ function plot_nodes!(orbit::Orbit, fig_handle=nothing, node_flag="all")
             y = [ndpos[2]]
             z = [ndpos[3]]
 
-            plot!(
-                fig_handle,
+            scatter!(
+                ax,
                 x,
                 y,
                 z,
-                seriestype=:scatter,
-                lab = node_name,
-                legend = true,
-                ms=5,
-                ma=1,
-                mc=parse(Colorant, RGB(rand(), rand(), rand())),
-                msw=2;
-                shape=:xcross,
-            );
+                label = node_name,
+            )
         end
         i += 1
     end
@@ -178,6 +191,26 @@ function plot_nodes!(orbit::Orbit, fig_handle=nothing, node_flag="all")
     end
 
     return nothing
+end
+
+function make_equal_limits(
+    ax::Union{Axis3, Axis}=current_axis(),
+    centering_switch::Bool=true,
+)
+    xmin, ymin, zmin = minimum(ax.finallimits[])
+    xmax, ymax, zmax = maximum(ax.finallimits[])
+
+    min_l = min(xmin, ymin, zmin)
+    max_l = min(xmax, ymax, zmax)
+
+    if centering_switch
+        abs_max_l = max(abs(min_l), abs(max_l))
+        ax_l = (-abs_max_l, abs_max_l)
+    else
+        ax_l = (min_l, max_l)
+    end
+
+    limits!(ax, ax_l, ax_l, ax_l)
 end
 
 """
@@ -198,17 +231,26 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 """
 function plotOrbits(
     orbits::Union{Orbit, Vector{Orbit}},
-    nodes::Union{Node, Vector{Node}, String},
-    line_props=(1, :solid, :white),
-    scale::Number=1.0,
-    transparency::Number=0.8
+    nodes::Union{Node, Vector{Node}, String}="all",
 )
+
     if (orbits isa Orbit)
-        fig = plot(bg=:black);
-        plot_body!(orbits.body, [0.0;0.0;0.0], scale, transparency, fig)
-        plot_orbit!(orbits, line_props, fig)
-        plot_nodes!(orbits, fig, nodes)
-        display(fig)
+        fig = Figure();
+        ax = Axis3(
+            fig[1, 1],
+            aspect = (1.0,1.0,1.0),
+            title = join(["Body: "; orbits.body.name; " | Orbit: "; orbits.name]),
+            xlabel = "The x label",
+            ylabel = "The y label",
+            zlabel = "The z label",
+            viewmode = :fit,
+        );
+        plot_body!(orbits.body, (0.0,0.0,0.0), ax)
+        plot_orbit!(orbits, ax)
+        plot_nodes!(orbits, nodes, ax)
+        axislegend(position = :ct, orientation = :horizontal)
+        display(GLMakie.Screen(), fig)
+        make_equal_limits(ax, true)
     elseif (orbits isa Vector{Orbit})
         orb_body_list = []
         orb_body_name_list = []
@@ -219,41 +261,35 @@ function plotOrbits(
 
         uniquebodylist = unique(orb_body_list)
 
+        i = 1
         for curr_body in uniquebodylist
-            fig = plot(bg=:black);
+            fig = Figure();
+            ax = Axis3(
+                fig[1, 1],
+                aspect = (1.0,1.0,1.0),
+                xlabel = "The x label",
+                ylabel = "The y label",
+                zlabel = "The z label",
+                viewmode = :fit,
+            );
 
-            plot_body!(curr_body, [0.0;0.0;0.0], scale, transparency, fig)
+            plot_body!(curr_body, (0.0,0.0,0.0), ax)
 
             orbits_in_this_body = orbits[findall(orb_body_name_list .== curr_body.name)]
 
-            xl_p = []
-            xl_m = []
-            yl_p = []
-            yl_m = []
-            zl_p = []
-            zl_m = []
+            orb_names = []
             for orbit in orbits_in_this_body
-                lp = (
-                    line_props[1],
-                    line_props[2],
-                    parse(Colorant, RGB(rand(), rand(), rand()))
-                )
-
-                plot_orbit!(orbit, lp, fig)
-                plot_nodes!(orbit, fig, nodes)
-
-                xl_p = [xl_p; xlims()[2]]
-                xl_m = [xl_m; xlims()[1]]
-                yl_p = [yl_p; ylims()[2]]
-                yl_m = [yl_m; ylims()[1]]
-                zl_p = [zl_p; zlims()[2]]
-                zl_m = [zl_m; zlims()[1]]
+                orb_names = [orb_names; orbit.name]
+                plot_orbit!(orbit, ax)
+                plot_nodes!(orbit, nodes, ax)
             end
-            xlims!(minimum(xl_m), maximum(xl_p))
-            ylims!(minimum(yl_m), maximum(yl_p))
-            zlims!(minimum(zl_m), maximum(zl_p))
+            orb_names = join( orb_names, ", ")
+            ax.title = join(["Body: "; curr_body.name; " | Orbits: "; orb_names])
 
-            display(fig)
+            axislegend(position = :ct, orientation = :horizontal)
+            display(GLMakie.Screen(), fig)
+            make_equal_limits(ax, true)
+            i+=1
         end
     end
     return nothing

@@ -36,7 +36,6 @@ The algorithm was obtained from \\[1] (accessed on 2022-07-20).
 
 - **[1]**: https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
 """
-############### CHECK DUPLICATES BEFORE ADDING ###############
 function add_node!(orb::Orbit, node::Node)
 
     duplicate_node = []
@@ -72,6 +71,8 @@ function add_node!(orb::Orbit, node::Vector{Node})
     return orb
 end
 
+add_node!(orb::Orbit, name::String, θ::Number=0.0) = add_node!(orb, Node(name, θ))
+
 """
     plot_orbit(orbit::Orbit, line_props)
 
@@ -90,19 +91,20 @@ function rm_node!(orb::Orbit, node::Node)
         nodeslist = orb.nodes
         nodeposlist = orb.nodepos
 
-        namelist = []
+        i = 1
+        idx = []
         for nd in nodeslist
-            namelist = [namelist; nd.name]
+            if nd == node
+                push!(idx, i)
+            end
         end
 
-        matchidx = findall(item -> item == node.name, namelist)
-
-        if matchidx === nothing
+        if isempty(idx)
             @warn ("Node <$(node.name)> not found in Orbit <$(orb.name)>")
             return nothing
         else
-            deleteat!(nodeslist, matchidx)
-            deleteat!(nodeposlist, matchidx)
+            deleteat!(nodeslist, idx)
+            deleteat!(nodeposlist, idx)
         end
 
         return Orbit(

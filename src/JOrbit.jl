@@ -3,7 +3,11 @@ module JOrbit
 using Colors
 using DifferentialEquations
 using LinearAlgebra
-using Plots
+# using Plots
+# using PlotThemes
+# gr()
+using GLMakie
+using GeometryBasics
 
 ################################################################################
 #                                  Submodules
