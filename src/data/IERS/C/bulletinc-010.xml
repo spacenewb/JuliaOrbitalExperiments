@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><BulletinC xmlns="http://www.iers.org/2003/schema/iers">
+<data>
+    <date>1995-07-03</date>
+    <number>10</number>
+    <UT lineID="48">
+      <startDate>1994-07-01</startDate>
+      <startUTC>0</startUTC>
+      <endDate>1996-01-01</endDate>
+      <endUTC>0</endUTC>
+      <UTC_TAI unit="s">-29</UTC_TAI>
+    </UT>
+    <UT lineID="49">
+      <startDate>1996-01-01</startDate>
+      <startUTC>0</startUTC>
+      <UTC_TAI unit="s">-30</UTC_TAI>
+    </UT>
+  </data>
+</BulletinC>

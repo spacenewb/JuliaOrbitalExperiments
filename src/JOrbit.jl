@@ -8,7 +8,9 @@ using LinearAlgebra
 # gr()
 using GLMakie
 GLMakie.activate!()
-using GeometryBasics
+# using GeometryBasics # Is it required?
+
+using ForwardDiff
 
 ################################################################################
 #                                  Submodules

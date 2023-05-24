@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><BulletinD xmlns="http://www.iers.org/2003/schema/iers">
+<data>
+<date>2009-05-14</date>
+<number>103</number>
+<startDate>2009-06-11</startDate>
+<startUTC>0</startUTC>
+<DUT1 unit="s">0.2</DUT1>
+</data>
+</BulletinD>

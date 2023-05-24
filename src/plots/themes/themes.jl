@@ -7,6 +7,4 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# import GLMakie.Theme
-
 include("./cosmos.jl")

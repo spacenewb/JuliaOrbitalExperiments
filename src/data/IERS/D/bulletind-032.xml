@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><BulletinD xmlns="http://www.iers.org/2003/schema/iers">
+<data>
+    <date>1992-10-14</date>
+    <number>32</number>
+    <startDate>1992-11-26</startDate>
+    <startUTC>0</startUTC>
+    <DUT1 unit="s">0.1</DUT1>
+  </data>
+</BulletinD>

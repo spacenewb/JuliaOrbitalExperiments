@@ -152,3 +152,17 @@ struct Orbit
 
     Orbit(name::String, kep::KeplerElem, body::Body, nodes::Vector, nodepos::Vector{Vector{Any}}) = new(name, kep, kepler_to_rv(kep, body.μ), body, nodes, nodepos);
 end
+
+struct Trajectory
+    name::String
+    orbit::Orbit
+    ΔT::Real
+    node0::Node
+    nodef::Node
+
+    Trajectory(name::String, orbit::Orbit, node0::Node, nodef::Node) = new(name, orbit, ΔT, node0, nodef);
+
+    Trajectory(name::String, ΔT::Real, node0::Node, nodef::Node) = new(name, orbit, ΔT, node0, nodef);
+
+    Trajectory(name::String, orbit::Orbit, ΔT::Real, node0::Node, nodef::Node) = new(name, orbit, ΔT, node0, nodef);
+end

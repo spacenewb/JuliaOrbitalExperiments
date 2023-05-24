@@ -30,19 +30,19 @@ n4 = Node("n4", 2.4)
 
 ###### add and remove nodes test
 add_node!(o1, n1)
-add_node!(o1, [n1, n1])
-rm_node!(o1, n1)
-add_node!(o1, [n1, n1, n2])
-rm_node!(o1, [n1, n2, n2])
-rm_node!(o1, n1)
+# add_node!(o1, [n1, n1])
+# rm_node!(o1, n1)
+# add_node!(o1, [n1, n1, n2])
+# rm_node!(o1, [n1, n2, n2])
+# rm_node!(o1, n1)
 
-##### Plot test
-add_node!(o1, [n1, n2, n3])
+# ##### Plot test
+# add_node!(o1, [n1, n2, n3])
 
-plotOrbits([o1, o2, o3], n1)
-plotOrbits(o1, n4)
-plotOrbits(o1, n2)
-plotOrbits(o1, [n2, n3])
-plotOrbits([o1, o2, o3], [n2, n3])
+# plotOrbits([o1, o2, o3], n1)
+# plotOrbits(o1, n4)
+# plotOrbits(o1, n2)
+# plotOrbits(o1, [n2, n3])
+# plotOrbits([o1, o2, o3], [n2, n3])
 
-# df = plotOrbits(o1)
+df = plotOrbits(o1)

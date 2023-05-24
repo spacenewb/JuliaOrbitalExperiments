@@ -10,3 +10,4 @@
 include("./frames.jl")
 include("./misc.jl")
 include("./propagation.jl")
+include("./anomaly.jl")
